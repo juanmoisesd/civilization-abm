@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  # Ejecutar experimentos completos
+  experiments:
+    build: ..
+    volumes:
+      - ../results:/app/results
+    command: python experiments/run.py
+
+  # Jupyter Notebook interactivo
+  notebook:
+    build: ..
+    ports:
+      - "8888:8888"
+    volumes:
+      - ../:/app
+    command: >
+      jupyter notebook
+        --ip=0.0.0.0
+        --port=8888
+        --no-browser
+        --allow-root
+        --NotebookApp.token=''
+        --NotebookApp.password=''
+        notebooks/exploration.ipynb

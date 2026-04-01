@@ -1,0 +1,89 @@
+# =============================================================
+# Configuración de experimentos — Civilization ABM
+# =============================================================
+# Cada entrada bajo 'conditions' define un escenario experimental.
+# El script run.py itera sobre todas las combinaciones.
+
+# --- Parámetros globales ---
+global:
+  steps: 200          # pasos de simulación por réplica
+  replications: 30    # réplicas por condición (para IC 95%)
+  n_agents: 100       # tamaño de la población
+  output_dir: "results"
+  seed_base: 42       # semilla base; cada réplica = seed_base + réplica
+
+# --- Condiciones experimentales ---
+# Cada condición varía UNA variable independiente.
+# Nomenclatura: [variable]_[nivel]
+
+conditions:
+
+  # Experimento 1: Efecto de la desigualdad inicial
+  - name: "ineq_low"
+    initial_inequality: 0.3
+    tax_policy: "progressive"
+    network_type: "small_world"
+    enforce_floor: false
+
+  - name: "ineq_medium"
+    initial_inequality: 0.8
+    tax_policy: "progressive"
+    network_type: "small_world"
+    enforce_floor: false
+
+  - name: "ineq_high"
+    initial_inequality: 1.5
+    tax_policy: "progressive"
+    network_type: "small_world"
+    enforce_floor: false
+
+  # Experimento 2: Efecto de la política fiscal
+  - name: "tax_none"
+    initial_inequality: 0.8
+    tax_policy: null
+    network_type: "small_world"
+    enforce_floor: false
+
+  - name: "tax_flat"
+    initial_inequality: 0.8
+    tax_policy: "flat"
+    network_type: "small_world"
+    enforce_floor: false
+
+  - name: "tax_progressive"
+    initial_inequality: 0.8
+    tax_policy: "progressive"
+    network_type: "small_world"
+    enforce_floor: false
+
+  # Experimento 3: Efecto de la topología de red
+  - name: "net_none"
+    initial_inequality: 0.8
+    tax_policy: "progressive"
+    network_type: null
+    enforce_floor: false
+
+  - name: "net_small_world"
+    initial_inequality: 0.8
+    tax_policy: "progressive"
+    network_type: "small_world"
+    enforce_floor: false
+
+  - name: "net_scale_free"
+    initial_inequality: 0.8
+    tax_policy: "progressive"
+    network_type: "scale_free"
+    enforce_floor: false
+
+  # Experimento 4: Piso social
+  - name: "floor_off"
+    initial_inequality: 0.8
+    tax_policy: "progressive"
+    network_type: "small_world"
+    enforce_floor: false
+
+  - name: "floor_on"
+    initial_inequality: 0.8
+    tax_policy: "progressive"
+    network_type: "small_world"
+    enforce_floor: true
