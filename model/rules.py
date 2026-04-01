@@ -3,6 +3,8 @@ Reglas institucionales aplicables al modelo.
 
 Diseñadas como funciones puras que reciben el modelo
 y modifican el estado de los agentes.
+
+Compatible con Mesa 3.x: usa model.agents (AgentSet).
 """
 
 
@@ -20,7 +22,7 @@ def flat_tax(model, rate: float = 0.05) -> float:
     -------
     total_collected : float
     """
-    agents = model.schedule.agents
+    agents = list(model.agents)
     collected = []
     for agent in agents:
         tax = agent.wealth * rate
@@ -45,7 +47,7 @@ def progressive_tax(model, brackets=None) -> float:
     if brackets is None:
         brackets = [(20, 0.05), (50, 0.10), (float("inf"), 0.20)]
 
-    agents = model.schedule.agents
+    agents = list(model.agents)
     collected = []
     for agent in agents:
         for threshold, rate in brackets:
@@ -70,7 +72,7 @@ def reputation_penalty(model, threshold: float = 0.3, penalty: float = 0.5):
     Agentes con reputación por debajo del umbral pierden riqueza
     (sanción social institucionalizada).
     """
-    for agent in model.schedule.agents:
+    for agent in model.agents:
         if agent.reputation < threshold:
             agent.wealth = max(0.0, agent.wealth - penalty)
 
@@ -80,10 +82,8 @@ def enforce_minimum_wealth(model, minimum: float = 1.0):
     Garantía de riqueza mínima (piso social).
     La diferencia se descuenta proporcionalmente del resto.
     """
-    agents = model.schedule.agents
-    deficit = sum(
-        max(0.0, minimum - a.wealth) for a in agents
-    )
+    agents = list(model.agents)
+    deficit = sum(max(0.0, minimum - a.wealth) for a in agents)
     if deficit == 0:
         return
 

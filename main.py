@@ -9,6 +9,8 @@ Uso
     python main.py
     python main.py --steps 300 --agents 150 --tax progressive
     python main.py --no-plot --output results/test
+
+Compatible con Mesa 3.x.
 """
 
 import argparse
@@ -16,7 +18,6 @@ import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -35,22 +36,22 @@ from analysis.plots import (
 
 def parse_args():
     p = argparse.ArgumentParser(description="Civilization ABM — ejecución rápida")
-    p.add_argument("--steps",    type=int,   default=200,          help="Pasos de simulación")
-    p.add_argument("--agents",   type=int,   default=100,          help="Número de agentes")
-    p.add_argument("--ineq",     type=float, default=0.8,          help="Desigualdad inicial (σ)")
-    p.add_argument("--tax",      type=str,   default="progressive",help="Política fiscal: flat|progressive|none")
-    p.add_argument("--network",  type=str,   default="small_world",help="Red: small_world|scale_free|none")
-    p.add_argument("--floor",    action="store_true",               help="Activar piso social")
-    p.add_argument("--seed",     type=int,   default=42,           help="Semilla aleatoria")
-    p.add_argument("--output",   type=str,   default="results",    help="Carpeta de resultados")
-    p.add_argument("--no-plot",  action="store_true",               help="Omitir visualizaciones")
+    p.add_argument("--steps",   type=int,   default=200,           help="Pasos de simulación")
+    p.add_argument("--agents",  type=int,   default=100,           help="Número de agentes")
+    p.add_argument("--ineq",    type=float, default=0.8,           help="Desigualdad inicial (σ)")
+    p.add_argument("--tax",     type=str,   default="progressive", help="Política fiscal: flat|progressive|none")
+    p.add_argument("--network", type=str,   default="small_world", help="Red: small_world|scale_free|none")
+    p.add_argument("--floor",   action="store_true",                help="Activar piso social")
+    p.add_argument("--seed",    type=int,   default=42,            help="Semilla aleatoria")
+    p.add_argument("--output",  type=str,   default="results",     help="Carpeta de resultados")
+    p.add_argument("--no-plot", action="store_true",                help="Omitir visualizaciones")
     return p.parse_args()
 
 
 def main():
     args = parse_args()
 
-    tax_policy = None if args.tax == "none" else args.tax
+    tax_policy  = None if args.tax     == "none" else args.tax
     network_type = None if args.network == "none" else args.network
 
     print("\n" + "=" * 50)
@@ -88,7 +89,7 @@ def main():
     # Datos y métricas
     # ---------------------------------------------------------------
     model_df = model.datacollector.get_model_vars_dataframe()
-    stats = summary_statistics(model)
+    stats    = summary_statistics(model)
 
     print("─── Métricas finales ──────────────────────────")
     for k, v in stats.items():
@@ -106,16 +107,13 @@ def main():
     print(f"Resultados guardados en: {out}/")
 
     # ---------------------------------------------------------------
-    # Visualizaciones
+    # Visualizaciones — Mesa 3.x: list(model.agents)
     # ---------------------------------------------------------------
     if not args.no_plot:
         print("Generando figuras...")
+        agents = list(model.agents)
 
-        fig_panel = plot_summary_panel(
-            model_df,
-            model.schedule.agents,
-            model.network,
-        )
+        fig_panel = plot_summary_panel(model_df, agents, model.network)
         fig_panel.savefig(out / "summary_panel.png", dpi=150, bbox_inches="tight")
 
         fig_gini = plot_gini_evolution(model_df)
@@ -127,15 +125,15 @@ def main():
         fig_class = plot_class_evolution(model_df)
         fig_class.savefig(out / "class_evolution.png", dpi=150, bbox_inches="tight")
 
-        fig_dist = plot_wealth_distribution(model.schedule.agents, step=args.steps)
+        fig_dist = plot_wealth_distribution(agents, step=args.steps)
         fig_dist.savefig(out / "wealth_distribution.png", dpi=150, bbox_inches="tight")
 
-        wealths = [a.wealth for a in model.schedule.agents]
+        wealths = [a.wealth for a in agents]
         fig_lorenz = plot_lorenz(wealths)
         fig_lorenz.savefig(out / "lorenz_curve.png", dpi=150, bbox_inches="tight")
 
         if model.network is not None:
-            fig_net = plot_network(model.network, model.schedule.agents)
+            fig_net = plot_network(model.network, agents)
             fig_net.savefig(out / "social_network.png", dpi=150, bbox_inches="tight")
 
         print(f"Figuras guardadas en: {out}/")

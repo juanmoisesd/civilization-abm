@@ -75,6 +75,10 @@ def run_single(
     model_df = model.datacollector.get_model_vars_dataframe()
     agent_df = model.datacollector.get_agent_vars_dataframe()
 
+    # Mesa 3.x puede nombrar el índice distinto — normalizar a "Step"
+    model_df.index.name = "Step"
+    agent_df.index.names = ["Step", "AgentID"]
+
     # Snapshot del último paso
     last_step = agent_df.index.get_level_values("Step").max()
     agent_df_final = agent_df.xs(last_step, level="Step")

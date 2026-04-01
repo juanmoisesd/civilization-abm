@@ -3,6 +3,8 @@ CivilAgent: unidad básica de la simulación.
 
 Cada agente representa un individuo con recursos económicos,
 reputación social y una estrategia de interacción.
+
+Compatible con Mesa 3.x (API sin unique_id explícito ni scheduler).
 """
 
 from mesa import Agent
@@ -29,8 +31,9 @@ class CivilAgent(Agent):
 
     STRATEGIES = ("cooperative", "competitive", "neutral")
 
-    def __init__(self, unique_id, model, initial_wealth=None, strategy=None):
-        super().__init__(unique_id, model)
+    # Mesa 3.x: constructor recibe solo (model, ...) — unique_id es auto-asignado
+    def __init__(self, model, initial_wealth=None, strategy=None):
+        super().__init__(model)
 
         # Riqueza inicial con distribución log-normal (más realista)
         if initial_wealth is not None:
@@ -93,11 +96,12 @@ class CivilAgent(Agent):
             self.social_class = "upper"
 
     # ------------------------------------------------------------------
-    # Paso del scheduler
+    # Paso del scheduler (llamado por agents.shuffle_do en Mesa 3.x)
     # ------------------------------------------------------------------
 
     def step(self):
-        others = [a for a in self.model.schedule.agents if a is not self]
+        # Mesa 3.x: model.agents es un AgentSet — convertir a lista para choice
+        others = [a for a in self.model.agents if a is not self]
         if others:
             other = random.choice(others)
             self.interact(other)

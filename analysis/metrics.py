@@ -4,6 +4,8 @@ Métricas cuantitativas para análisis de civilización.
 Todas las funciones reciben arrays de numpy o listas Python
 y retornan escalares o DataFrames para facilitar la integración
 con experimentos y publicación científica.
+
+Compatible con Mesa 3.x: usa model.agents (AgentSet).
 """
 
 import numpy as np
@@ -28,7 +30,7 @@ def gini(array) -> float:
         return 0.0
     if np.any(array < 0):
         array = array - array.min()
-    array += 1e-10          # evitar división por cero
+    array += 1e-10
     array = np.sort(array)
     n = len(array)
     index = np.arange(1, n + 1)
@@ -84,10 +86,7 @@ def lorenz_curve(array):
 def class_distribution(agents) -> dict:
     """
     Fracción de agentes en cada clase social.
-
-    Parámetros
-    ----------
-    agents : iterable de CivilAgent
+    Acepta tanto listas como AgentSet de Mesa 3.x.
     """
     classes = [a.social_class for a in agents]
     n = len(classes)
@@ -101,11 +100,6 @@ def social_mobility(wealth_t0, wealth_t1, n_bins: int = 5) -> float:
     """
     Fracción de agentes que cambiaron de quintil entre t0 y t1.
     Valores altos → mayor movilidad social.
-
-    Parámetros
-    ----------
-    wealth_t0, wealth_t1 : array-like de misma longitud
-    n_bins : número de cuantiles (5 = quintiles)
     """
     w0 = np.asarray(wealth_t0, dtype=float)
     w1 = np.asarray(wealth_t1, dtype=float)
@@ -134,6 +128,7 @@ def wealth_entropy(array, n_bins: int = 20) -> float:
 def strategy_entropy(agents) -> float:
     """
     Diversidad de estrategias en la población (bits).
+    Acepta tanto listas como AgentSet de Mesa 3.x.
     """
     strategies = [a.strategy for a in agents]
     unique, counts = np.unique(strategies, return_counts=True)
@@ -174,21 +169,24 @@ def summary_statistics(model) -> pd.Series:
     """
     Retorna un pd.Series con todas las métricas principales del modelo
     en el estado actual.
+
+    Compatible con Mesa 3.x: usa model.agents (AgentSet).
     """
-    wealths = np.array([a.wealth for a in model.schedule.agents])
-    reps = np.array([a.reputation for a in model.schedule.agents])
+    agent_list = list(model.agents)
+    wealths = np.array([a.wealth for a in agent_list])
+    reps    = np.array([a.reputation for a in agent_list])
 
     stats = {
-        "n_agents":        len(wealths),
-        "mean_wealth":     float(wealths.mean()),
-        "median_wealth":   float(np.median(wealths)),
-        "std_wealth":      float(wealths.std()),
-        "gini":            gini(wealths),
-        "theil":           theil_index(wealths),
-        "palma":           palma_ratio(wealths),
-        "cv":              coefficient_of_variation(wealths),
-        "wealth_entropy":  wealth_entropy(wealths),
-        "mean_reputation": float(reps.mean()),
-        "strategy_entropy": strategy_entropy(model.schedule.agents),
+        "n_agents":         len(wealths),
+        "mean_wealth":      float(wealths.mean()),
+        "median_wealth":    float(np.median(wealths)),
+        "std_wealth":       float(wealths.std()),
+        "gini":             gini(wealths),
+        "theil":            theil_index(wealths),
+        "palma":            palma_ratio(wealths),
+        "cv":               coefficient_of_variation(wealths),
+        "wealth_entropy":   wealth_entropy(wealths),
+        "mean_reputation":  float(reps.mean()),
+        "strategy_entropy": strategy_entropy(agent_list),
     }
     return pd.Series(stats)
